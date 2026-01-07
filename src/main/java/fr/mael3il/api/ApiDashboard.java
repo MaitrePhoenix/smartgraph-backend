@@ -20,7 +20,7 @@ public class ApiDashboard {
     @Inject
     ThreadContext threadContext;
 
-    //récuupère le nombre de parcelles, capteurs, robots, observations dans la base de données et le retourne sous forme de json sans passer par un objet intermédiaire
+    //retourne le nombre de parcelles, capteurs, robots et observations dans la base de données
     @GET
     @Path("stats")
     public CompletionStage<Response> getDashboardStats() {
