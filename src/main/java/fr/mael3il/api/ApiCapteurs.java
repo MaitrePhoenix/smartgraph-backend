@@ -44,6 +44,30 @@ public class ApiCapteurs {
                 .thenApply(ResponseBuilder::build);
     }
 
+    //get all capteurs of a parcelle
+    @GET
+    @Path("/parcelles/{parcelle_id}")
+    public CompletionStage<Response> getCapteursByParcelleId(@PathParam("parcelle_id") String parcelleId) {
+        AsyncSession session = driver.session(AsyncSession.class);
+
+        CompletionStage<List<Capteur>> cs = session
+                .executeReadAsync(tx -> tx
+                        .runAsync(
+                                "MATCH (c:Capteur:SSN_Sensor {parcelle_id: $parcelle_id}) RETURN c",
+                                Values.parameters("parcelle_id", parcelleId)
+                        )
+                        .thenCompose(cursor ->
+                                cursor.listAsync(record ->
+                                        Capteur.from(record.get("c").asNode())
+                                )));
+
+        return threadContext.withContextCapture(cs)
+                .thenCompose(capteurs ->
+                        session.closeAsync().thenApply(signal -> capteurs))
+                .thenApply(Response::ok)
+                .thenApply(ResponseBuilder::build);
+    }
+
     @GET
     @Path("/{id}")
     public CompletionStage<Response> getCapteurById(@PathParam("id") String id) {
